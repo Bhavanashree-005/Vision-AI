@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisionCode AI — Intelligent CV & Code Assistant</title>
+    <!-- Google Fonts & Marked.js -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-logo">👁️</div>
+                <div class="brand-text">
+                    <h2>VisionCode AI</h2>
+                    <span>CV & Code Assistant</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-item active" data-view="cv-lab">
+                    <span class="nav-icon">🔬</span> CV Lab (Playground)
+                </button>
+                <button class="nav-item" data-view="ai-vision">
+                    <span class="nav-icon">👁️</span> AI Vision Assistant
+                </button>
+                <button class="nav-item" data-view="code-generate">
+                    <span class="nav-icon">💻</span> Generate Code
+                </button>
+                <button class="nav-item" data-view="code-explain">
+                    <span class="nav-icon">📖</span> Explain Code
+                </button>
+                <button class="nav-item" data-view="code-debug">
+                    <span class="nav-icon">🪲</span> Debug Error
+                </button>
+                <button class="nav-item" data-view="code-improve">
+                    <span class="nav-icon">⚡</span> Improve Code
+                </button>
+                <button class="nav-item" data-view="code-comment">
+                    <span class="nav-icon">📝</span> Add Comments
+                </button>
+                <button class="nav-item" data-view="ai-chat">
+                    <span class="nav-icon">💬</span> AI Chat (Code & Vision)
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="api-settings-card">
+                    <div class="api-header">
+                        <span>⚙️ API Settings</span>
+                        <span id="api-status-badge" class="badge badge-warning">Not Set</span>
+                    </div>
+                    <div class="api-input-group">
+                        <input type="password" id="api-key-input" placeholder="sk-or-..." />
+                        <button id="save-api-key-btn">Save</button>
+                    </div>
+                </div>
+                <button id="clear-history-btn" class="btn btn-secondary btn-full">🗑️ Clear Chat Memory</button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="top-header">
+                <h1 class="gradient-title">VisionCode AI</h1>
+                <p class="subtitle">An advanced Computer Vision playground and multi-modal Python AI coding assistant</p>
+                <div id="status-banner" class="alert alert-warning">
+                    ⚠️ <strong>Offline Mode Active:</strong> Local Computer Vision operations run 100% offline. Configure an OpenRouter API key in the sidebar for full AI Vision.
+                </div>
+            </header>
+
+            <!-- SECTION: CV Lab (Playground) -->
+            <section id="view-cv-lab" class="view-section active">
+                <div class="section-title">
+                    <h2>🔬 Interactive Computer Vision Playground</h2>
+                    <p>Upload an image and adjust real-time parameters. VisionCode AI automatically generates the corresponding Python OpenCV code.</p>
+                </div>
+
+                <div class="cv-playground-grid">
+                    <!-- Control Panel (Left) -->
+                    <div class="panel control-panel">
+                        <h3>⚙️ Image & CV Controls</h3>
+                        
+                        <div class="form-group">
+                            <label>Upload Target Image</label>
+                            <div class="file-dropzone" id="cv-dropzone">
+                                <input type="file" id="cv-file-input" accept="image/*" />
+                                <div class="dropzone-text">
+                                    <span class="dropzone-icon">📁</span>
+                                    <p>Drag & drop image here or <strong>browse</strong></p>
+                                    <span class="file-name" id="cv-file-name">No file selected</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>CV Operation Category</label>
+                            <select id="cv-category-select">
+                                <option value="Basic Filters">Basic Filters</option>
+                                <option value="Edge & Line Detection">Edge & Line Detection</option>
+                                <option value="Contour Analytics">Contour Analytics</option>
+                                <option value="Face & Eye Tracking">Face & Eye Tracking</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="cv-operation-group">
+                            <label>Operation</label>
+                            <select id="cv-operation-select">
+                                <!-- Populated dynamically by JS -->
+                            </select>
+                        </div>
+
+                        <!-- Dynamic Sliders Container -->
+                        <div id="cv-dynamic-sliders" class="sliders-container">
+                            <!-- Populated dynamically by JS -->
+                        </div>
+
+                        <button id="run-cv-btn" class="btn btn-primary btn-full">🚀 Process Image</button>
+                    </div>
+
+                    <!-- Output Panel (Right) -->
+                    <div class="panel output-panel">
+                        <h3>🖼️ Visual Output & Code</h3>
+                        
+                        <div class="image-viewports-grid">
+                            <div class="viewport-card">
+                                <span class="viewport-title">Original Image</span>
+                                <div class="image-container">
+                                    <img id="orig-img-preview" src="" alt="Upload image to view" class="hidden" />
+                                    <div id="orig-placeholder" class="placeholder-text">No image loaded</div>
+                                </div>
+                            </div>
+
+                            <div class="viewport-card">
+                                <span class="viewport-title">Processed Output</span>
+                                <div class="image-container">
+                                    <img id="proc-img-preview" src="" alt="Processed output" class="hidden" />
+                                    <div id="proc-placeholder" class="placeholder-text">Output will appear here</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Metadata Cards -->
+                        <div id="cv-metadata-container" class="metadata-grid"></div>
+
+                        <!-- Code Block -->
+                        <div class="code-box-header">
+                            <span>💻 Executable Python OpenCV Code</span>
+                            <button id="copy-cv-code-btn" class="btn btn-small">📋 Copy</button>
+                        </div>
+                        <pre class="code-block"><code id="cv-code-display"># Upload an image and select an operation to generate code.</code></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: AI Vision Assistant -->
+            <section id="view-ai-vision" class="view-section">
+                <div class="section-title">
+                    <h2>👁️ AI Vision Assistant</h2>
+                    <p>Upload a screenshot of code, traceback errors, system diagrams, or wireframes to analyze and write code.</p>
+                </div>
+                <div class="panel">
+                    <div class="form-group">
+                        <label>Upload Screenshot / Image</label>
+                        <div class="file-dropzone" id="vision-dropzone">
+                            <input type="file" id="vision-file-input" accept="image/*" />
+                            <div class="dropzone-text">
+                                <span class="dropzone-icon">🖼️</span>
+                                <p>Select code screenshot or diagram</p>
+                                <span class="file-name" id="vision-file-name">No file selected</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Question or Instructions</label>
+                        <textarea id="vision-query-input" rows="4" placeholder="e.g. Explain this error screenshot and show how to fix it, or write Streamlit code matching this UI."></textarea>
+                    </div>
+                    <button id="run-vision-btn" class="btn btn-primary">🚀 Analyze Screenshot</button>
+
+                    <div class="result-box hidden" id="vision-result-box">
+                        <h3>📄 Solution Output</h3>
+                        <div id="vision-result-content" class="markdown-body"></div>
+                        <button class="btn btn-secondary copy-btn" data-target="vision-result-content">📋 Copy Result</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTIONS: Code Tasks (Generate, Explain, Debug, Improve, Comment) -->
+            <section id="view-code-task" class="view-section">
+                <div class="section-title">
+                    <h2 id="task-heading">💻 Python Code Assistant</h2>
+                    <p id="task-subheading">Generate, explain, debug, optimize, or comment Python code.</p>
+                </div>
+                <div class="panel">
+                    <div class="form-group">
+                        <label id="task-input-label">Description or Input Code</label>
+                        <textarea id="task-input-text" rows="8" placeholder="Enter instructions or code..."></textarea>
+                    </div>
+                    <button id="run-task-btn" class="btn btn-primary">🚀 Run Task</button>
+
+                    <div class="result-box hidden" id="task-result-box">
+                        <h3>📄 Output Result</h3>
+                        <div id="task-result-content" class="markdown-body"></div>
+                        <button class="btn btn-secondary copy-btn" data-target="task-result-content">📋 Copy Result</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: AI Chat -->
+            <section id="view-ai-chat" class="view-section">
+                <div class="section-title">
+                    <h2>💬 AI Chat (Code & Vision)</h2>
+                    <p>Have an interactive conversation about Computer Vision, Python programming, logic, and debugging.</p>
+                </div>
+                <div class="panel chat-panel">
+                    <div class="chat-messages" id="chat-messages-container">
+                        <div class="chat-bubble assistant">
+                            👋 Hello! I am VisionCode AI. Ask me any question about Python coding or Computer Vision!
+                        </div>
+                    </div>
+                    <div class="chat-input-bar">
+                        <input type="file" id="chat-file-input" accept="image/*" class="hidden" />
+                        <button id="chat-attach-btn" class="btn btn-secondary" title="Attach Image">📎</button>
+                        <input type="text" id="chat-text-input" placeholder="Ask a question..." />
+                        <button id="chat-send-btn" class="btn btn-primary">Send</button>
+                    </div>
+                    <span id="chat-file-indicator" class="file-indicator hidden">Attached: <span id="chat-file-name"></span></span>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+# Generic Python template
+def solve(data):
+    """Implement your solution logic here."""
+    # TODO: Replace with actual implementation
+    return data
+
+
+if __name__ == "__main__":
+    sample_input = "example"
+    result = solve(sample_input)
+    print(result)
