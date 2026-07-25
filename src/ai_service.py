@@ -78,16 +78,16 @@ class AIService:
         """
         if not self._api_key:
             logger.info("No API key — using offline mode for task '%s'.", task)
-            return self._offline_response(task, user_input)
+            return self._offline_response(task, user_input, image_bytes=image_bytes)
 
         try:
             return self._call_api(prompt, image_bytes, image_mime)
         except requests.RequestException as exc:
             logger.error("API request failed: %s. Switching to offline mode.", exc)
-            return self._offline_response(task, user_input)
+            return self._offline_response(task, user_input, image_bytes=image_bytes)
         except Exception as exc:
             logger.error("Unexpected API error: %s. Switching to offline mode.", exc)
-            return self._offline_response(task, user_input)
+            return self._offline_response(task, user_input, image_bytes=image_bytes)
 
     def _call_api(
         self,
@@ -138,9 +138,9 @@ class AIService:
         save_history(self.history)
         return answer
 
-    def _offline_response(self, task: str, user_input: str) -> str:
+    def _offline_response(self, task: str, user_input: str, image_bytes: Optional[bytes] = None) -> str:
         """Get a response from the offline engine."""
-        return handle_offline(task, user_input)
+        return handle_offline(task, user_input, image_bytes=image_bytes)
 
     # ------------------------------------------------------------------
     # Task-specific methods

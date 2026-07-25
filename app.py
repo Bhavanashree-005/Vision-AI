@@ -466,6 +466,59 @@ elif nav == "AI Vision Assistant":
     uploaded_screen = st.file_uploader(
         "Upload Image / Screenshot", type=["png", "jpg", "jpeg"], key="vision_uploader"
     )
+
+    # If an image is uploaded, show live local CV preview
+    if uploaded_screen is not None:
+        from src.offline import vision_offline
+
+        # Read image for display
+        pil_vision_img = Image.open(uploaded_screen).convert("RGB")
+        vision_img_bytes = uploaded_screen.getvalue()
+        vision_mime = uploaded_screen.type
+
+        # Show the uploaded image
+        st.image(pil_vision_img, caption="Uploaded Image", use_container_width=True)
+
+        # Live local CV analysis panel (runs immediately, offline)
+        with st.expander("🔬 Local OpenCV Analysis (Instant — no API key needed)", expanded=not st.session_state.api_key_configured):
+            with st.spinner("Running local CV analysis..."):
+                local_analysis = vision_offline("Preview analysis", image_bytes=vision_img_bytes)
+            st.markdown(local_analysis)
+
+            # Quick interactive CV controls for the uploaded image
+            st.markdown("---")
+            st.markdown("**Quick CV Checks**")
+            col_cv1, col_cv2, col_cv3 = st.columns(3)
+            with col_cv1:
+                show_edges = st.checkbox("Show Edge Map", value=False, key="vis_show_edges")
+            with col_cv2:
+                show_gray = st.checkbox("Show Grayscale", value=False, key="vis_show_gray")
+            with col_cv3:
+                show_contours = st.checkbox("Show Contours", value=False, key="vis_show_contours")
+
+            img_np_vis = np.array(pil_vision_img)
+            img_bgr_vis = cv2.cvtColor(img_np_vis, cv2.COLOR_RGB2BGR)
+
+            if show_edges:
+                gray_vis = cv2.cvtColor(img_bgr_vis, cv2.COLOR_BGR2GRAY)
+                edges_vis = cv2.Canny(gray_vis, 50, 150)
+                st.image(edges_vis, caption="Canny Edge Map", use_container_width=True, clamp=True)
+            if show_gray:
+                gray_vis = cv2.cvtColor(img_bgr_vis, cv2.COLOR_BGR2GRAY)
+                st.image(gray_vis, caption="Grayscale", use_container_width=True)
+            if show_contours:
+                gray_vis = cv2.cvtColor(img_bgr_vis, cv2.COLOR_BGR2GRAY)
+                edges_vis = cv2.Canny(gray_vis, 50, 150)
+                cont_vis, _ = cv2.findContours(edges_vis, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                img_cont = img_bgr_vis.copy()
+                cv2.drawContours(img_cont, cont_vis, -1, (0, 255, 0), 2)
+                rgb_cont = cv2.cvtColor(img_cont, cv2.COLOR_BGR2RGB)
+                st.image(rgb_cont, caption="Contour Overlay", use_container_width=True)
+    else:
+        st.info("⬆️ Upload an image above to get started.")
+
+    st.markdown("---")
+
     user_query = st.text_area(
         "What should VisionCode AI do with this image?",
         height=100,
@@ -479,13 +532,14 @@ elif nav == "AI Vision Assistant":
         elif not user_query.strip():
             st.error("Please enter a question or query.")
         else:
+            # Re-read bytes (file_uploader resets position after getvalue)
+            uploaded_screen.seek(0)
             img_bytes = uploaded_screen.read()
-            mime_type = uploaded_screen.type
 
             try:
                 with st.spinner("AI is examining the image and drafting solution..."):
                     response = st.session_state.service.vision_analyze(
-                        user_query, img_bytes, mime_type
+                        user_query, img_bytes, vision_mime
                     )
                 st.session_state.response = response
             except Exception as exc:
@@ -502,7 +556,29 @@ elif nav == "AI Vision Assistant":
 
 elif nav == "Generate Code":
     st.header("💻 Generate Python Code")
-    st.markdown("Describe the programming problem, and VisionCode AI will write clean, well-commented Python code.")
+    st.markdown("Describe a programming problem, and VisionCode AI will write clean, well-commented Python code.")
+
+    # Quick-select example chips
+    st.markdown("**Quick examples — click to auto-fill:**")
+    examples = [
+        "Check if a number is prime",
+        "Sort a list using merge sort",
+        "Read a CSV file and print rows",
+        "Binary search in a sorted array",
+        "Detect faces in an image using OpenCV",
+        "Find the GCD and LCM of two numbers",
+        "Write a Stack class with push/pop",
+        "Validate an email address with regex",
+        "Tower of Hanoi solver",
+        "N-Queens backtracking solution",
+    ]
+    cols = st.columns(5)
+    for i, ex in enumerate(examples[:10]):
+        mod = i % 5
+        with cols[mod]:
+            if st.button(ex, key=f"gen_example_{i}", use_container_width=True):
+                st.session_state.user_input = ex
+                st.rerun()
 
     st.text_area(
         "Describe the problem / requirement:",
